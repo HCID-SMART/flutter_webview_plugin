@@ -12,6 +12,9 @@ Plugin that allows Flutter to communicate with a native WebView.
 The webview is not integrated in the widget tree, it is a native view on top of the flutter view.
 you won't be able to use snackbars, dialogs ...
 
+The getSafeAcceptedType() function is available only for minimum SDK of 21.
+eval() function only supports SDK of 19 or greater for evaluating Javascript.
+
 ## Getting Started
 
 For help getting started with Flutter, view our online [documentation](http://flutter.io/).
@@ -125,6 +128,29 @@ flutterWebviewPlugin.launch(url,
 );
 ```
 
+#### Injecting custom code into the webview
+Use `flutterWebviewPlugin.evalJavaScript(String code)`. This function must be run after the page has finished loading (i.e. listen to `onStateChanged` for events where state is `finishLoad`).
+
+If you have a large amount of JavaScript to embed, use an asset file. Add the asset file to `pubspec.yaml`, then call the function like:
+
+```dart
+Future<String> loadJS(String name) async {
+  var givenJS = rootBundle.loadString('assets/$name.js');
+  return givenJS.then((String js) {
+    flutterWebViewPlugin.onStateChanged.listen((viewState) async {
+      if (viewState.type == WebViewState.finishLoad) {
+        flutterWebViewPlugin.evalJavascript(js);
+      }
+    });
+  });
+}
+```
+
+### Accessing local files in the file system
+Set the `withLocalUrl` option to true in the launch function or in the Webview scaffold to enable support for local URLs.
+
+Note that, on iOS, the `localUrlScope` option also needs to be set to a path to a directory. All files inside this folder (or subfolder) will be allowed access. If ommited, only the local file being opened will have access allowed, resulting in no subresources being loaded. This option is ignored on Android.
+
 ### Webview Events
 
 - `Stream<Null>` onDestroy
@@ -152,10 +178,14 @@ Future<Null> launch(String url, {
    bool withZoom: false,
    bool withLocalStorage: true,
    bool withLocalUrl: true,
+   String localUrlScope: null,
    bool scrollBar: true,
    bool supportMultipleWindows: false,
    bool appCacheEnabled: false,
    bool allowFileURLs: false,
+   bool displayZoomControls: false,
+   bool useWideViewPort: false,
+   bool withOverviewMode: false,
 });
 ```
 

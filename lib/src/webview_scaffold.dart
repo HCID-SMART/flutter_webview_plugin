@@ -3,41 +3,47 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_webview_plugin/src/javascript_channel.dart';
 
 import 'base.dart';
 
 class WebviewScaffold extends StatefulWidget {
-
-  const WebviewScaffold({
-    Key key,
-    this.appBar,
-    @required this.url,
-    this.headers,
-    this.withJavascript,
-    this.clearCache,
-    this.clearCookies,
-    this.enableAppScheme,
-    this.userAgent,
-    this.primary = true,
-    this.persistentFooterButtons,
-    this.bottomNavigationBar,
-    this.withZoom,
-    this.withLocalStorage,
-    this.withLocalUrl,
-    this.scrollBar,
-    this.supportMultipleWindows,
-    this.appCacheEnabled,
-    this.hidden = false,
-    this.initialChild,
-    this.allowFileURLs,
-    this.resizeToAvoidBottomInset = false,
-    this.invalidUrlRegex,
-    this.geolocationEnabled
-  }) : super(key: key);
+  const WebviewScaffold(
+      {Key key,
+      this.appBar,
+      @required this.url,
+      this.headers,
+      this.javascriptChannels,
+      this.withJavascript,
+      this.clearCache,
+      this.clearCookies,
+      this.enableAppScheme,
+      this.userAgent,
+      this.primary = true,
+      this.persistentFooterButtons,
+      this.bottomNavigationBar,
+      this.withZoom,
+      this.displayZoomControls,
+      this.withLocalStorage,
+      this.withLocalUrl,
+      this.localUrlScope,
+      this.withOverviewMode,
+      this.useWideViewPort,
+      this.scrollBar,
+      this.supportMultipleWindows,
+      this.appCacheEnabled,
+      this.hidden = false,
+      this.initialChild,
+      this.allowFileURLs,
+      this.resizeToAvoidBottomInset = false,
+      this.invalidUrlRegex,
+      this.geolocationEnabled})
+      : super(key: key);
 
   final PreferredSizeWidget appBar;
   final String url;
   final Map<String, String> headers;
+  final Set<JavascriptChannel> javascriptChannels;
   final bool withJavascript;
   final bool clearCache;
   final bool clearCookies;
@@ -47,8 +53,10 @@ class WebviewScaffold extends StatefulWidget {
   final List<Widget> persistentFooterButtons;
   final Widget bottomNavigationBar;
   final bool withZoom;
+  final bool displayZoomControls;
   final bool withLocalStorage;
   final bool withLocalUrl;
+  final String localUrlScope;
   final bool scrollBar;
   final bool supportMultipleWindows;
   final bool appCacheEnabled;
@@ -58,6 +66,9 @@ class WebviewScaffold extends StatefulWidget {
   final bool resizeToAvoidBottomInset;
   final String invalidUrlRegex;
   final bool geolocationEnabled;
+  final bool withOverviewMode;
+  final bool useWideViewPort;
+  final bool debuggingEnabled;
 
   @override
   _WebviewScaffoldState createState() => _WebviewScaffoldState();
@@ -77,7 +88,9 @@ class _WebviewScaffoldState extends State<WebviewScaffold> {
     webviewReference.close();
 
     _onBack = webviewReference.onBack.listen((_) async {
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
 
       // Equivalent of Navigator.maybePop(), except that [webviewReference]
       // is closed when the pop goes ahead. Whether the pop was performed
@@ -123,26 +136,29 @@ class _WebviewScaffoldState extends State<WebviewScaffold> {
         onRectChanged: (Rect value) {
           if (_rect == null) {
             _rect = value;
-            webviewReference.launch(
-              widget.url,
-              headers: widget.headers,
-              withJavascript: widget.withJavascript,
-              clearCache: widget.clearCache,
-              clearCookies: widget.clearCookies,
-              hidden: widget.hidden,
-              enableAppScheme: widget.enableAppScheme,
-              userAgent: widget.userAgent,
-              rect: _rect,
-              withZoom: widget.withZoom,
-              withLocalStorage: widget.withLocalStorage,
-              withLocalUrl: widget.withLocalUrl,
-              scrollBar: widget.scrollBar,
-              supportMultipleWindows: widget.supportMultipleWindows,
-              appCacheEnabled: widget.appCacheEnabled,
-              allowFileURLs: widget.allowFileURLs,
-              invalidUrlRegex: widget.invalidUrlRegex,
-              geolocationEnabled: widget.geolocationEnabled
-            );
+            webviewReference.launch(widget.url,
+                headers: widget.headers,
+                javascriptChannels: widget.javascriptChannels,
+                withJavascript: widget.withJavascript,
+                clearCache: widget.clearCache,
+                clearCookies: widget.clearCookies,
+                hidden: widget.hidden,
+                enableAppScheme: widget.enableAppScheme,
+                userAgent: widget.userAgent,
+                rect: _rect,
+                withZoom: widget.withZoom,
+                displayZoomControls: widget.displayZoomControls,
+                withLocalStorage: widget.withLocalStorage,
+                withLocalUrl: widget.withLocalUrl,
+                localUrlScope: widget.localUrlScope,
+                withOverviewMode: widget.withOverviewMode,
+                useWideViewPort: widget.useWideViewPort,
+                scrollBar: widget.scrollBar,
+                supportMultipleWindows: widget.supportMultipleWindows,
+                appCacheEnabled: widget.appCacheEnabled,
+                allowFileURLs: widget.allowFileURLs,
+                invalidUrlRegex: widget.invalidUrlRegex,
+                geolocationEnabled: widget.geolocationEnabled);
           } else {
             if (_rect != value) {
               _rect = value;
@@ -154,7 +170,8 @@ class _WebviewScaffoldState extends State<WebviewScaffold> {
             }
           }
         },
-        child: widget.initialChild ?? const Center(child: const CircularProgressIndicator()),
+        child: widget.initialChild ??
+            const Center(child: const CircularProgressIndicator()),
       ),
     );
   }
@@ -177,7 +194,8 @@ class _WebviewPlaceholder extends SingleChildRenderObjectWidget {
   }
 
   @override
-  void updateRenderObject(BuildContext context, _WebviewPlaceholderRender renderObject) {
+  void updateRenderObject(
+      BuildContext context, _WebviewPlaceholderRender renderObject) {
     renderObject..onRectChanged = onRectChanged;
   }
 }
