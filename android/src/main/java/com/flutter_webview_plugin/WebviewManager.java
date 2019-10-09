@@ -421,7 +421,8 @@ class WebviewManager {
             boolean allowFileURLs,
             boolean useWideViewPort,
             String invalidUrlRegex,
-            boolean geolocationEnabled
+            boolean geolocationEnabled,
+            boolean debuggingEnabled
     ) {
         webView.getSettings().setJavaScriptEnabled(withJavascript);
         webView.getSettings().setBuiltInZoomControls(withZoom);
