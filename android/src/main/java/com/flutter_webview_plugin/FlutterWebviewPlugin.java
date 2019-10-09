@@ -107,6 +107,7 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
         boolean useWideViewPort = call.argument("useWideViewPort");
         String invalidUrlRegex = call.argument("invalidUrlRegex");
         boolean geolocationEnabled = call.argument("geolocationEnabled");
+        boolean debuggingEnabled = call.argument("debuggingEnabled");
 
         if (webViewManager == null || webViewManager.closed == true) {
             Map<String, Object> arguments = (Map<String, Object>) call.arguments;
@@ -138,7 +139,8 @@ public class FlutterWebviewPlugin implements MethodCallHandler, PluginRegistry.A
                 allowFileURLs,
                 useWideViewPort,
                 invalidUrlRegex,
-                geolocationEnabled
+                geolocationEnabled,
+                debuggingEnabled
         );
         result.success(null);
     }
